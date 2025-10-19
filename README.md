@@ -44,3 +44,15 @@ File: time_series_plots.m
 
 Generates the time-series plots of the option-implied cumulant innovations — variance (d(c,2)), skewness (d(c,3)), and kurtosis (d(c,4)).
 These plots provide intuition on how risk-neutral moments evolve over time and respond to major market events such as the Global Financial Crisis (2008–2009) or the COVID-19 crash (2020). They serve as a visual foundation for understanding the forward-looking information embedded in option prices.
+
+# Comprehensive Backtest and Comparison
+File: backtest_all_models.m
+
+Runs a complete rolling-window backtest for all models (HIST, SIM, DIM, MSK, MK).
+It generates cumulative return plots, rolling Sharpe ratio graphs, and summary tables comparing:
+
+	•	Mean and volatility of returns
+	•	Maximum drawdown
+	•	Tail-sensitive metrics (CVaR, Omega, Modified Sharpe)
+	
+This script represents the core empirical comparison discussed in Chapter 4 of the thesis and summarizes the overall findings.
