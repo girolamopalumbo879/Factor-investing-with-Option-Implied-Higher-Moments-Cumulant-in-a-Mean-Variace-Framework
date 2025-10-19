@@ -1,0 +1,47 @@
+clc; clear; close all;
+
+% Load dataset
+load('DatasetRiskNeutralCumulantsForGirolamo.mat'); 
+
+% Ensure column vectors
+c2 = c2(:);
+c3 = c3(:);
+c4 = c4(:);
+
+% Compute first differences (factors)
+dc2 = diff(c2);
+dc3 = diff(c3);
+dc4 = diff(c4);
+
+% Define start and end dates
+startDate = datetime(2007,12,5);
+endDate   = datetime(2021,3,4);
+
+% Create date vector spanning the full sample
+dates = linspace(startDate, endDate, length(c2))';
+datesFactors = dates(2:end);
+
+% Plot the factors
+figure;
+subplot(3,1,1);
+plot(datesFactors, dc2, 'b', 'LineWidth', 1.2);
+title('Risk-Neutral Variance Factor (dc2)');
+xlabel('Time');
+ylabel('dc2');
+grid on;
+
+subplot(3,1,2);
+plot(datesFactors, dc3, 'r', 'LineWidth', 1.2);
+title('Risk-Neutral Skewness Factor (dc3)');
+xlabel('Time');
+ylabel('dc3');
+grid on;
+
+subplot(3,1,3);
+plot(datesFactors, dc4, 'k', 'LineWidth', 1.2);
+title('Risk-Neutral Kurtosis Factor (dc4)');
+xlabel('Time');
+ylabel('dc4');
+grid on;
+
+
