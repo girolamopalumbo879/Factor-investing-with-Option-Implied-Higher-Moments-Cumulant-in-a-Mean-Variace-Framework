@@ -9,7 +9,7 @@ The project builds progressively from the Single Index Model (SIM)—which captu
 
 Each model generates its own efficient frontier, tangency (maximum Sharpe) portfolio, and backtest performance through rolling-window simulations. The code also computes a comprehensive set of performance metrics (Sharpe ratio, Calmar ratio, Jensen’s alpha, Treynor ratio, Omega ratio) and visualizes cumulative returns and rolling Sharpe ratios over time.
 
-The repository accompanies the empirical analysis presented in the author’s Master’s Thesis, “Factor Investing in a Mean–Variance Framework: Do Higher-Moment Factors Improve Portfolio Performance?” The work investigates how forward-looking option-implied cumulants behave across different market regimes and whether they enhance portfolio resilience during crises such as the 2008–2009 Global Financial Crisis and the COVID-19 turmoil in 2020.
+The repository accompanies the empirical analysis presented in the author’s Master’s Thesis, “Factor Investing in a Mean–Variance Framework: Do Option-Implied Higher-Order Cumulants  Improve Portfolio Performance?” The work investigates how forward-looking option-implied cumulants behave across different market regimes and whether they enhance portfolio resilience during crises such as the 2008–2009 Global Financial Crisis and the COVID-19 turmoil in 2020.
 
 The dataset includes daily prices for 360 S&P 500 stocks, the S&P 500 index, and the U.S. 10-Year Treasury yield as the risk-free rate, sourced from S&P Capital IQ.
 
