@@ -2,6 +2,7 @@
 This repository contains the MATLAB implementation of a mean–variance portfolio optimization framework that integrates market-based and option-implied higher-moment information. The analysis explores whether incorporating forward-looking measures of variance, skewness, and kurtosis (derived from option prices) improves portfolio efficiency relative to traditional approaches.
 
 The project builds progressively from the Single Index Model (SIM)—which captures stock return co-movements through exposure to the market factor—to more advanced factor-based specifications:
+
 	•	DIM (Double Index Model): adds the variance innovation factor (option-implied variance).
 	•	MSK (Market Skewness Model): introduces skewness innovation.
 	•	MK (Market Kurtosis Model): incorporates kurtosis innovation.
