@@ -15,3 +15,8 @@ Extends the SIM by introducing a second factor — the change in the second cumu
 File: market_cum3.m
 
 Implements the Market–Skewness (MSK) model, where the third cumulant (d(c,3)) measures innovations in implied skewness — the asymmetry in the return distribution. This model examines whether sensitivity to changes in risk-neutral skewness improves portfolio efficiency or downside risk protection. As before, the script includes the efficient frontier and tangency portfolio.
+
+# Market–Kurtosis Model
+File: market_cum4.m
+
+Implements the Market–Kurtosis (MK) model, which adds the fourth cumulant (d(c,4)) — capturing tail thickness or extreme event risk — as a second factor alongside the market. The file estimates expected returns, the covariance matrix, and the efficient frontier with the tangency portfolio, analyzing whether accounting for tail risk yields better performance.
