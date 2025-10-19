@@ -1,0 +1,45 @@
+function [cov_DIM, alphas, betas, gammas] = compute_cov_DIM(excessReturns, excessMarket, dc2)
+% Computes the DIM variance-covariance matrix with orthogonal factors
+% Inputs:
+%   - excessReturns: (T x N) matrix of excess stock returns
+%   - excessMarket:  (T x 1) vector of market excess returns
+%   - dc2: (T x 1) vector of first differences of c2
+% Outputs:
+%   - cov_DIM: (N x N) annualized DIM covariance matrix
+%   - alphas: (N x 1)
+%   - betas:  (N x 1)
+%   - gammas: (N x 1)
+
+    [T, N] = size(excessReturns);
+
+    % Orthogonalize dc2 with respect to market
+    X_ortho = [ones(T, 1), excessMarket];
+    b_ortho = X_ortho \ dc2;
+    dc2_ortho = dc2 - X_ortho * b_ortho;
+
+    alphas = zeros(N, 1);
+    betas = zeros(N, 1);
+    gammas = zeros(N, 1);
+    res_var = zeros(N, 1);
+
+    X = [ones(T, 1), excessMarket, dc2_ortho];
+    for i = 1:N
+        y = excessReturns(:, i);
+        b = X \ y;
+        res = y - X * b;
+
+        alphas(i) = b(1);
+        betas(i) = b(2);
+        gammas(i) = b(3);
+        res_var(i) = var(res, 1);
+    end
+
+    sigma_m2 = var(excessMarket, 1);
+    sigma_c2_ortho = var(dc2_ortho, 1);
+
+    cov_DIM = (betas * betas') * sigma_m2 + ...
+              (gammas * gammas') * sigma_c2_ortho + ...
+              diag(res_var);
+
+    cov_DIM = cov_DIM * 252;  % annualize
+end
