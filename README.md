@@ -56,3 +56,8 @@ It generates cumulative return plots, rolling Sharpe ratio graphs, and summary t
 	•	Tail-sensitive metrics (CVaR, Omega, Modified Sharpe)
 	
 This script represents the core empirical comparison discussed in Chapter 4 of the thesis and summarizes the overall findings.
+
+# Downside Risk Analysis
+File: Maximum_drawdown.m
+
+Computes and plots the maximum drawdown profiles of the portfolios across rolling periods. This metric quantifies the largest peak-to-trough loss, capturing the extent of downside exposure. The file allows visual comparison across models, showing how factor-based strategies (especially MSK and MK) mitigate extreme losses.
