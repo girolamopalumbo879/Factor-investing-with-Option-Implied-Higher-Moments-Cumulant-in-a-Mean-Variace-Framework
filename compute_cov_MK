@@ -1,0 +1,46 @@
+function [cov_MK, alphas, betas, thetas] = compute_cov_MK(R, Rm, dc4)
+% Compute variance-covariance matrix using Market + Kurtosis model (orthogonalized)
+% Inputs:
+%   - R: (T x N) excess stock returns
+%   - Rm: (T x 1) excess market return
+%   - dc4: (T x 1) raw fourth cumulant (daily changes in risk-neutral kurtosis)
+% Outputs:
+%   - cov_MK: (N x N) annualized covariance matrix
+%   - alphas, betas, thetas: regression coefficients
+
+    [T, N] = size(R);
+
+    % Step 1: Orthogonalize dc4 w.r.t. market
+    X_ortho = [ones(T,1), Rm];
+    gamma = X_ortho \ dc4;
+    dc4_ortho = dc4 - X_ortho * gamma;
+
+    % Step 2: Run regression for each stock: R_i = a + b*Rm + θ*dc4_ortho + ε
+    alphas = zeros(N,1);
+    betas = zeros(N,1);
+    thetas = zeros(N,1);
+    res_var = zeros(N,1);
+
+    X = [ones(T,1), Rm, dc4_ortho];
+
+    for i = 1:N
+        y = R(:, i);
+        b = X \ y;
+        residuals = y - X * b;
+
+        alphas(i) = b(1);
+        betas(i) = b(2);
+        thetas(i) = b(3);
+        res_var(i) = var(residuals, 1);  % population variance
+    end
+
+    % Step 3: Covariance matrix
+    sigma_m2 = var(Rm, 1);         % Var(Rm)
+    sigma_k2 = var(dc4_ortho, 1);  % Var(dc4_ortho)
+
+    cov_MK = (betas * betas') * sigma_m2 + ...
+             (thetas * thetas') * sigma_k2 + ...
+             diag(res_var);
+
+    cov_MK = cov_MK * 252;  % annualize
+end
