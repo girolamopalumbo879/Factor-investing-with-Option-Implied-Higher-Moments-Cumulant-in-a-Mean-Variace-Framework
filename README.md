@@ -61,3 +61,16 @@ This script represents the core empirical comparison discussed in Chapter 4 of t
 File: Maximum_drawdown.m
 
 Computes and plots the maximum drawdown profiles of the portfolios across rolling periods. This metric quantifies the largest peak-to-trough loss, capturing the extent of downside exposure. The file allows visual comparison across models, showing how factor-based strategies (especially MSK and MK) mitigate extreme losses.
+
+# Rolling Performance Evaluation
+File: Rolling_window_12_24_SR_performance_metrics.m
+
+Calculates rolling 12-month and 24-month Sharpe ratios to track how risk-adjusted performance evolves through time.
+Also includes computation of extended performance metrics:
+
+	•	Calmar Ratio (return/drawdown)
+	•	Jensen’s Alpha (alpha over CAPM benchmark)
+	•	Treynor Ratio (return per unit of systematic risk)
+	•	Omega Ratio (probability-weighted gains vs. losses)
+	
+The results highlight how each model adapts during market crises and stable phases.
