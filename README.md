@@ -20,3 +20,19 @@ Implements the Market–Skewness (MSK) model, where the third cumulant (d(c,3)) 
 File: market_cum4.m
 
 Implements the Market–Kurtosis (MK) model, which adds the fourth cumulant (d(c,4)) — capturing tail thickness or extreme event risk — as a second factor alongside the market. The file estimates expected returns, the covariance matrix, and the efficient frontier with the tangency portfolio, analyzing whether accounting for tail risk yields better performance.
+
+# Covariance Estimation Functions
+Files:
+	•	compute_cov_SIM.m
+	•	compute_cov_DIM.m
+	•	compute_cov_MSK.m
+	•	compute_cov_MK.m
+
+These function files compute the variance–covariance matrices for each corresponding model.
+Each function applies the relevant regression-based factor structure:
+	•	SIM: market only
+	•	DIM: market + variance
+	•	MSK: market + skewness
+	•	MK: market + kurtosis
+
+They are called internally by the main scripts above to generate model-specific covariance estimations used in the portfolio optimization process.
