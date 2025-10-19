@@ -1,0 +1,31 @@
+function [cov_SIM, alphas, betas] = compute_cov_SIM(excessReturns, excessMarket)
+% Computes the SIM variance-covariance matrix
+% Inputs:
+%   - excessReturns: (T x N) matrix of excess stock returns
+%   - excessMarket:  (T x 1) vector of market excess returns
+% Outputs:
+%   - cov_SIM: (N x N) annualized SIM covariance matrix
+%   - alphas: (N x 1) vector of alphas
+%   - betas:  (N x 1) vector of betas
+
+    [T, N] = size(excessReturns);
+    alphas = zeros(N,1);
+    betas = zeros(N,1);
+    res_var = zeros(N,1);
+
+    X = [ones(T,1), excessMarket];
+    for i = 1:N
+        y = excessReturns(:, i);
+        b = X \ y;
+        y_hat = X * b;
+        residuals = y - y_hat;
+
+        alphas(i) = b(1);
+        betas(i) = b(2);
+        res_var(i) = var(residuals, 1);
+    end
+
+    sigma_m2 = var(excessMarket, 1);
+    cov_SIM = (betas * betas') * sigma_m2 + diag(res_var);
+    cov_SIM = cov_SIM * 252;  % annualize
+end
