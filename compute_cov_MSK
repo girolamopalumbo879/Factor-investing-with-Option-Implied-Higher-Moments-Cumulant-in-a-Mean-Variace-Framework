@@ -1,0 +1,47 @@
+function [cov_MSK, alphas, betas, deltas] = compute_cov_MSK(R, Rm, dc3)
+% Computes the variance-covariance matrix for a model with Market and Skewness (orthogonalized)
+% Inputs:
+%   R   : (T x N) excess stock returns
+%   Rm  : (T x 1) excess market return
+%   dc3 : (T x 1) first difference of risk-neutral skewness
+% Outputs:
+%   cov_MSK : (N x N) annualized variance-covariance matrix
+%   alphas  : (N x 1) alpha coefficients
+%   betas   : (N x 1) market betas
+%   deltas  : (N x 1) skewness factor loadings
+
+    [T, N] = size(R);
+    
+    % Step 1: Orthogonalize dc3 w.r.t. market
+    X_ortho = [ones(T,1), Rm];
+    gamma = X_ortho \ dc3;
+    dc3_ortho = dc3 - X_ortho * gamma;
+
+    % Step 2: Regression R_i ~ Rm + dc3_ortho
+    alphas = zeros(N,1);
+    betas = zeros(N,1);
+    deltas = zeros(N,1);
+    res_var = zeros(N,1);
+
+    X = [ones(T,1), Rm, dc3_ortho];
+
+    for i = 1:N
+        y = R(:, i);
+        b = X \ y;
+        res = y - X * b;
+
+        alphas(i) = b(1);
+        betas(i) = b(2);
+        deltas(i) = b(3);
+        res_var(i) = var(res, 1);  % population variance
+    end
+
+    % Step 3: Covariance matrix
+    sigma_m2 = var(Rm, 1);
+    sigma_c3 = var(dc3_ortho, 1);
+
+    cov_MSK = (betas * betas') * sigma_m2 + ...
+              (deltas * deltas') * sigma_c3 + ...
+              diag(res_var);
+    cov_MSK = cov_MSK * 252;  % annualize
+end
