@@ -38,3 +38,9 @@ Each function applies the relevant regression-based factor structure:
 	•	MK: market + kurtosis
 
 They are called internally by the main scripts above to generate model-specific covariance estimations used in the portfolio optimization process.
+
+# Option-Implied Cumulants: Time-Series Visualization
+File: time_series_plots.m
+
+Generates the time-series plots of the option-implied cumulant innovations — variance (d(c,2)), skewness (d(c,3)), and kurtosis (d(c,4)).
+These plots provide intuition on how risk-neutral moments evolve over time and respond to major market events such as the Global Financial Crisis (2008–2009) or the COVID-19 crash (2020). They serve as a visual foundation for understanding the forward-looking information embedded in option prices.
