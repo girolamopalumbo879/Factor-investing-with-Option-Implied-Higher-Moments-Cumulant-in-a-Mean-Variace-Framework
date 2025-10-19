@@ -1,5 +1,16 @@
 # Factor-investing-with-Option-Implied-Higher-Moments-Cumulant-in-a-Mean-Variace-Framework
-MATLAB implementation of mean–variance portfolio optimization models using market and option-implied higher-moment cumulants (variance, skewness, kurtosis).
+This repository contains the MATLAB implementation of a mean–variance portfolio optimization framework that integrates market-based and option-implied higher-moment information. The analysis explores whether incorporating forward-looking measures of variance, skewness, and kurtosis (derived from option prices) improves portfolio efficiency relative to traditional approaches.
+
+The project builds progressively from the Single Index Model (SIM)—which captures stock return co-movements through exposure to the market factor—to more advanced factor-based specifications:
+	•	DIM (Double Index Model): adds the variance innovation factor (option-implied variance).
+	•	MSK (Market Skewness Model): introduces skewness innovation.
+	•	MK (Market Kurtosis Model): incorporates kurtosis innovation.
+
+Each model generates its own efficient frontier, tangency (maximum Sharpe) portfolio, and backtest performance through rolling-window simulations. The code also computes a comprehensive set of performance metrics (Sharpe ratio, Calmar ratio, Jensen’s alpha, Treynor ratio, Omega ratio) and visualizes cumulative returns and rolling Sharpe ratios over time.
+
+The repository accompanies the empirical analysis presented in the author’s Master’s Thesis, “Factor Investing in a Mean–Variance Framework: Do Higher-Moment Factors Improve Portfolio Performance?” The work investigates how forward-looking option-implied cumulants behave across different market regimes and whether they enhance portfolio resilience during crises such as the 2008–2009 Global Financial Crisis and the COVID-19 turmoil in 2020.
+
+The dataset includes daily prices for 360 S&P 500 stocks, the S&P 500 index, and the U.S. 10-Year Treasury yield as the risk-free rate, sourced from S&P Capital IQ.
 
 # Dataset Description
 File: dataset2.xlsx
