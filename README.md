@@ -10,3 +10,8 @@ This script implements the Single Index Model (SIM), the baseline framework of t
 File: market_cum2.m
 
 Extends the SIM by introducing a second factor — the change in the second cumulant (d(c,2)), which captures variance innovations derived from option-implied information. The file computes the efficient frontier and tangency portfolio for the Double Index Model (DIM), showing whether variance risk contains additional forward-looking information beyond market exposure.
+
+# Market–Skewness Model (MSK)
+File: market_cum3.m
+
+Implements the Market–Skewness (MSK) model, where the third cumulant (d(c,3)) measures innovations in implied skewness — the asymmetry in the return distribution. This model examines whether sensitivity to changes in risk-neutral skewness improves portfolio efficiency or downside risk protection. As before, the script includes the efficient frontier and tangency portfolio.
