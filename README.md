@@ -1,6 +1,11 @@
 # Factor-investing-with-Option-Implied-Higher-Moments-Cumulant-in-a-Mean-Variace-Framework
 MATLAB implementation of mean–variance portfolio optimization models using market and option-implied higher-moment cumulants (variance, skewness, kurtosis).
 
+# Dataset Description
+File: dataset2.xlsx
+
+The file dataset2.xlsx contains the input data used for the empirical analysis and backtesting of the Single-Index and higher-moment factor models developed in the thesis. The dataset includes daily prices for a panel of individual U.S. stocks, the S&P 500 market index, and the U.S. 10-Year Treasury Constant Maturity yield, which serves as the risk-free rate proxy.
+
 # Single Index Model (SIM)
 File: SIM.m
 
