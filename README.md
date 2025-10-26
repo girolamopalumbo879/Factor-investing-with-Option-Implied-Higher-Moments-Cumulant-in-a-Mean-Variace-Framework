@@ -96,3 +96,12 @@ Also includes computation of extended performance metrics:
 	•	Omega Ratio (probability-weighted gains vs. losses)
 	
 The results highlight how each model adapts during market crises and stable phases.
+
+# Conclusion
+This repository provides a complete and transparent implementation of the empirical analysis conducted in the thesis “Factor Investing in a Mean–Variance Framework: The Role of Option-Implied Higher-Order Moments.”
+
+The MATLAB scripts reproduce every step of the research, from the estimation of market and option-implied cumulant factors to portfolio optimization, efficient frontier construction, and backtesting. The results illustrate how the inclusion of variance, skewness, and kurtosis innovations affects portfolio performance within a mean–variance framework.
+
+Overall, the findings confirm that while higher-moment, option-implied factors contribute to better risk management and slightly improved resilience during crisis periods, they do not substantially outperform the simpler market-based specification in normal market conditions. This emphasizes the importance of balancing model complexity and interpretability in portfolio construction.
+
+The repository is designed to promote reproducibility and further research. Users can easily adapt the scripts to alternative datasets, test different rolling-window parameters, or extend the framework to additional risk factors and asset classes.
