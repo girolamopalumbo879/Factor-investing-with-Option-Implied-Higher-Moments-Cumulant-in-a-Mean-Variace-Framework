@@ -18,6 +18,11 @@ File: dataset2.xlsx
 
 The file dataset2.xlsx contains the input data used for the empirical analysis and backtesting of the Single-Index and higher-moment factor models developed in the thesis. The dataset includes daily prices for a panel of individual U.S. stocks, the S&P 500 market index, and the U.S. 10-Year Treasury Constant Maturity yield, which serves as the risk-free rate proxy.
 
+File: DatasetRiskNeutralCumulants.mat
+
+The file DatasetRiskNeutralCumulants.mat contains the option-implied risk-neutral cumulants derived from S&P 500 option prices. Specifically, it includes the second (variance), third (skewness), and fourth (kurtosis) cumulants, denoted as c2, c3, and c4, respectively. These variables represent forward-looking measures of market expectations about volatility, asymmetry, and tail risk.
+The dataset also contains the corresponding dates vector, which aligns the cumulant series with the daily returns data from dataset2.xlsx. These cumulant series are used to compute the innovations (dc2, dc3, dc4) that serve as additional factors in the Double-Index (DIM), Market-Skewness (MSK), and Market-Kurtosis (MK) models implemented in the thesis.
+
 # Single Index Model (SIM)
 File: SIM.m
 
