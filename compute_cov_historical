@@ -1,0 +1,10 @@
+function cov_hist = compute_cov_historical(excessReturns)
+% Computes the historical variance-covariance matrix
+% Input:
+%   - excessReturns: (T x N) matrix of excess stock returns
+% Output:
+%   - cov_hist: (N x N) annualized historical variance-covariance matrix
+
+    cov_hist = cov(excessReturns);     % daily cov matrix
+    cov_hist = cov_hist * 252;         % annualize
+end
