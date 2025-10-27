@@ -16,7 +16,7 @@ excessMarketReturns = marketReturns - rf;
 dates_returns = dates_stock(2:end);
 
 %% STEP 1: Load cumulants
-load('DatasetRiskNeutralCumulantsForGirolamo.mat');
+load('DatasetRiskNeutralCumulants.mat');
 if isdatetime(dates) == 0
     dates_cumulants = datetime(dates, 'ConvertFrom', 'datenum');
 else
