@@ -46,6 +46,7 @@ Implements the Market–Kurtosis (MK) model, which adds the fourth cumulant (d(c
 # Covariance Estimation Functions
 Files:
 
+    •	compute_cov_historical.m
 	•	compute_cov_SIM.m
 	•	compute_cov_DIM.m
 	•	compute_cov_MSK.m
@@ -54,6 +55,7 @@ Files:
 These function files compute the variance–covariance matrices for each corresponding model.
 Each function applies the relevant regression-based factor structure:
 
+    •	Historical: the covariance matrix is estimated directly from sample returns using the historical method
 	•	SIM: market only
 	•	DIM: market + variance
 	•	MSK: market + skewness
