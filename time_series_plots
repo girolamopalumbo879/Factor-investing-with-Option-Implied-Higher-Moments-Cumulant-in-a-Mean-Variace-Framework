@@ -1,7 +1,7 @@
 clc; clear; close all;
 
 % Load dataset
-load('DatasetRiskNeutralCumulantsForGirolamo.mat'); 
+load('DatasetRiskNeutralCumulants.mat'); 
 
 % Ensure column vectors
 c2 = c2(:);
