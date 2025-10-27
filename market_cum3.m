@@ -16,7 +16,7 @@ excessMarketReturns = marketReturns - rf;
 dates_returns = dates_stock(2:end);
 
 %% STEP 1: Load only dc3 (risk-neutral skewness)
-load('DatasetRiskNeutralCumulantsForGirolamo.mat');
+load('DatasetRiskNeutralCumulants.mat');
 if ~isdatetime(dates)
     dates_cumulants = datetime(dates, 'ConvertFrom', 'datenum');
 else
