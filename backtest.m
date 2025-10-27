@@ -126,7 +126,7 @@ plot(roll_dates, cum_SIM,  'b--', 'LineWidth', 2);
 plot(roll_dates, cum_DIM,  'r-.', 'LineWidth', 2);           
 plot(roll_dates, cum_MSK,  'g-', 'LineWidth', 2);     
 plot(roll_dates, cum_MK,  'm:', 'LineWidth', 2);
-legend('HIST', 'SIM', 'DIM', 'MSK', 'Location', 'northwest');
+legend('HIST', 'SIM', 'DIM', 'MSK', 'MK', 'Location', 'northwest');
 xlabel('Date');
 ylabel('Cumulative Return');
 title('Backtest Comparison: HIST vs SIM vs DIM vs MSK vs MK');
