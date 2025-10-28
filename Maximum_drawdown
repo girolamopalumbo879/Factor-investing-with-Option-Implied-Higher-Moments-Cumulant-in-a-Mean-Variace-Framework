@@ -15,7 +15,7 @@ excessStockReturns = stockReturns - rf;
 excessMarketReturns = marketReturns - rf;
 dates_returns = dates_stock(2:end);
 
-%% STEP 1: Load cumulants (dc2 = variance, dc3 = skewness)
+%% STEP 1: Load cumulants (dc2 = variance, dc3 = skewness, dc4 = kurtosis)
 load('DatasetRiskNeutralCumulants.mat');
 if ~isdatetime(dates)
     dates_cumulants = datetime(dates, 'ConvertFrom', 'datenum');
@@ -25,6 +25,7 @@ end
 
 dc2 = diff(c2);  % variance
 dc3 = diff(c3);  % skewness
+dc4 = diff(c4);  % kurtosis
 dates_cumulants = dates_cumulants(2:end);
 
 %% STEP 2: Align data
@@ -33,6 +34,7 @@ aligned_stockReturns = excessStockReturns(idx_r, :);
 aligned_marketReturns = excessMarketReturns(idx_r);
 aligned_dc2 = dc2(idx_c);
 aligned_dc3 = dc3(idx_c);
+aligned_dc4 = dc4(idx_c);
 
 [Nobs, Nstocks] = size(aligned_stockReturns);
 
@@ -44,7 +46,8 @@ nSteps = floor((Nobs - window_length) / step_size);
 returns_HIST = zeros(nSteps, 1);
 returns_SIM  = zeros(nSteps, 1);
 returns_DIM  = zeros(nSteps, 1);
-returns_MSK   = zeros(nSteps, 1);
+returns_MSK  = zeros(nSteps, 1);
+returns_MK   = zeros(nSteps, 1);
 
 for t = 1:nSteps
     idx_train = (1:window_length) + (t-1)*step_size;
@@ -54,6 +57,7 @@ for t = 1:nSteps
     Rm = aligned_marketReturns(idx_train);
     dC2 = aligned_dc2(idx_train);
     dC3 = aligned_dc3(idx_train);
+    dC4 = aligned_dc4(idx_train);
     R_test = aligned_stockReturns(idx_test, :);
 
     %% HIST
@@ -75,6 +79,10 @@ for t = 1:nSteps
     mu_MSK = a_sk + b_sk * mean(Rm) + d_sk * mean(dC3);
     mu_MSK = mu_MSK * 252;
 
+    %% MK
+    [cov_MK, a_mk, b_mk, th_mk] = compute_cov_MK(R, Rm, dC4);
+    mu_MK = a_mk + b_mk * mean(Rm) + th_mk * mean(dC4);
+    mu_MK = mu_MK * 252;
 
     %% Optimization setup
     Aeq = ones(1, Nstocks); beq = 1;
@@ -93,40 +101,47 @@ for t = 1:nSteps
     x_D = quadprog(2*cov_DIM, [], [], [], Aeq, beq, lb, ub, [], options);
     returns_DIM(t) = sum(R_test * x_D);
 
-    % SK
+    % MSK
     x_SK = quadprog(2*cov_MSK, [], [], [], Aeq, beq, lb, ub, [], options);
     returns_MSK(t) = sum(R_test * x_SK);
 
+    % MK
+    x_MK = quadprog(2*cov_MK, [], [], [], Aeq, beq, lb, ub, [], options);
+    returns_MK(t) = sum(R_test * x_MK);
 end
 
 %% STEP 4: Cumulative returns
 cum_HIST = ret2price(returns_HIST);
 cum_SIM  = ret2price(returns_SIM);
 cum_DIM  = ret2price(returns_DIM);
-cum_MSK   = ret2price(returns_MSK);
+cum_MSK  = ret2price(returns_MSK);
+cum_MK   = ret2price(returns_MK);
 
 figure;
 plot(cum_HIST, 'k-', 'LineWidth', 2); hold on;
 plot(cum_SIM,  'b--', 'LineWidth', 2);
 plot(cum_DIM,  'r-.', 'LineWidth', 2);
-plot(cum_MSK,   'g-',  'LineWidth', 2);
-legend('HIST', 'SIM', 'DIM', 'SK', 'Location','northwest');
+plot(cum_MSK,  'g-', 'LineWidth', 2);
+plot(cum_MK,   'm-', 'LineWidth', 2);
+legend('HIST', 'SIM', 'DIM', 'MSK', 'MK', 'Location','northwest');
 xlabel('Rolling Periods');
 ylabel('Cumulative Return');
-title('Backtest Comparison: HIST vs SIM vs DIM vs MSK');
+title('Backtest Comparison: HIST vs SIM vs DIM vs MSK vs MK');
 grid on;
 
 %% STEP 5: Sharpe Ratios
 SR_HIST = mean(returns_HIST) / std(returns_HIST) * sqrt(12);
 SR_SIM  = mean(returns_SIM)  / std(returns_SIM)  * sqrt(12);
 SR_DIM  = mean(returns_DIM)  / std(returns_DIM)  * sqrt(12);
-SR_MSK   = mean(returns_MSK)   / std(returns_MSK)   * sqrt(12);
+SR_MSK  = mean(returns_MSK)  / std(returns_MSK)  * sqrt(12);
+SR_MK   = mean(returns_MK)   / std(returns_MK)   * sqrt(12);
 
 fprintf("\nSharpe Ratios (Annualized):\n");
 fprintf("HIST: %.4f\n", SR_HIST);
 fprintf("SIM : %.4f\n", SR_SIM);
 fprintf("DIM : %.4f\n", SR_DIM);
-fprintf("MSK  : %.4f\n", SR_MSK);
+fprintf("MSK : %.4f\n", SR_MSK);
+fprintf("MK  : %.4f\n", SR_MK);
 
 %% STEP 6: Additional Performance Metrics
 
@@ -135,40 +150,32 @@ skew_HIST = skewness(returns_HIST);
 skew_SIM  = skewness(returns_SIM);
 skew_DIM  = skewness(returns_DIM);
 skew_MSK  = skewness(returns_MSK);
+skew_MK   = skewness(returns_MK);
 
-fprintf("\nSkewness of Portfolio Returns:\n");
-fprintf("HIST: %.4f\n", skew_HIST);
-fprintf("SIM : %.4f\n", skew_SIM);
-fprintf("DIM : %.4f\n", skew_DIM);
-fprintf("MSK : %.4f\n", skew_MSK);
-
-% Create summary table
-Skewness_Table = table([skew_HIST; skew_SIM; skew_DIM; skew_MSK], ...
+Skewness_Table = table([skew_HIST; skew_SIM; skew_DIM; skew_MSK; skew_MK], ...
     'VariableNames', {'Skewness'}, ...
-    'RowNames', {'HIST','SIM','DIM','MSK'});
+    'RowNames', {'HIST','SIM','DIM','MSK','MK'});
 disp(Skewness_Table);
 
-
 % --- 2. Maximum Drawdown and CVaR ---
-% Helper function for drawdown
 calc_drawdown = @(cum_ret) min((cum_ret ./ cummax(cum_ret)) - 1);
-
 MDD_HIST = calc_drawdown(cum_HIST);
 MDD_SIM  = calc_drawdown(cum_SIM);
 MDD_DIM  = calc_drawdown(cum_DIM);
 MDD_MSK  = calc_drawdown(cum_MSK);
+MDD_MK   = calc_drawdown(cum_MK);
 
-% CVaR at 95%
 alpha = 0.95;
 CVaR_HIST = mean(returns_HIST(returns_HIST < quantile(returns_HIST, 1-alpha)));
 CVaR_SIM  = mean(returns_SIM(returns_SIM < quantile(returns_SIM, 1-alpha)));
 CVaR_DIM  = mean(returns_DIM(returns_DIM < quantile(returns_DIM, 1-alpha)));
 CVaR_MSK  = mean(returns_MSK(returns_MSK < quantile(returns_MSK, 1-alpha)));
+CVaR_MK   = mean(returns_MK(returns_MK < quantile(returns_MK, 1-alpha)));
 
-Drawdown_Table = table([MDD_HIST; MDD_SIM; MDD_DIM; MDD_MSK], ...
-                       [CVaR_HIST; CVaR_SIM; CVaR_DIM; CVaR_MSK], ...
+Drawdown_Table = table([MDD_HIST; MDD_SIM; MDD_DIM; MDD_MSK; MDD_MK], ...
+                       [CVaR_HIST; CVaR_SIM; CVaR_DIM; CVaR_MSK; CVaR_MK], ...
     'VariableNames', {'MaxDrawdown','CVaR_95'}, ...
-    'RowNames', {'HIST','SIM','DIM','MSK'});
+    'RowNames', {'HIST','SIM','DIM','MSK','MK'});
 disp(Drawdown_Table);
 
 % Plot drawdowns
@@ -177,45 +184,103 @@ plot((cum_HIST ./ cummax(cum_HIST))-1, 'k-', 'LineWidth', 1.5); hold on;
 plot((cum_SIM ./ cummax(cum_SIM))-1, 'b--', 'LineWidth', 1.5);
 plot((cum_DIM ./ cummax(cum_DIM))-1, 'r-.', 'LineWidth', 1.5);
 plot((cum_MSK ./ cummax(cum_MSK))-1, 'g-', 'LineWidth', 1.5);
-legend('HIST','SIM','DIM','MSK','Location','southwest');
+plot((cum_MK ./ cummax(cum_MK))-1, 'm-', 'LineWidth', 1.5);
+legend('HIST','SIM','DIM','MSK','MK','Location','southwest');
 xlabel('Rolling Periods'); ylabel('Drawdown');
 title('Maximum Drawdowns');
 grid on;
 
-
 % --- 3. Omega Ratios ---
-% Omega Ratio = (expected gains above 0) / (expected losses below 0)
 omega_ratio = @(r) mean(r(r>0)) / abs(mean(r(r<0)));
-
 Omega_HIST = omega_ratio(returns_HIST);
 Omega_SIM  = omega_ratio(returns_SIM);
 Omega_DIM  = omega_ratio(returns_DIM);
 Omega_MSK  = omega_ratio(returns_MSK);
+Omega_MK   = omega_ratio(returns_MK);
 
-Omega_Table = table([Omega_HIST; Omega_SIM; Omega_DIM; Omega_MSK], ...
+Omega_Table = table([Omega_HIST; Omega_SIM; Omega_DIM; Omega_MSK; Omega_MK], ...
     'VariableNames', {'OmegaRatio'}, ...
-    'RowNames', {'HIST','SIM','DIM','MSK'});
+    'RowNames', {'HIST','SIM','DIM','MSK','MK'});
 disp(Omega_Table);
 
-%% STEP 6: Portfolio Volatilities (Annualized)
+%% STEP 7: Jensen's Alpha and Treynor Ratio
+market_step = zeros(nSteps,1);
+for t = 1:nSteps
+    idx_test  = window_length + (t-1)*step_size + (1:step_size);
+    market_step(t) = mean(aligned_marketReturns(idx_test));
+end
+
+X = [ones(nSteps,1), market_step]; % constant + market return
+
+models = {'HIST','SIM','DIM','MSK','MK'};
+returns_all = {returns_HIST, returns_SIM, returns_DIM, returns_MSK, returns_MK};
+alphas = zeros(5,1); betas = zeros(5,1); treynors = zeros(5,1);
+
+annRf = mean(rf) * 252;
+
+for i = 1:5
+    b = regress(returns_all{i}, X);
+    alphas(i) = b(1) * 12;
+    betas(i)  = b(2);
+    annRet = mean(returns_all{i}) * 12;
+    treynors(i) = (annRet - annRf) / betas(i);
+end
+
+fprintf("\nJensen's Alpha (Annualized):\n");
+for i = 1:5
+    fprintf("%s : %.4f\n", models{i}, alphas(i));
+end
+
+fprintf("\nTreynor Ratios:\n");
+for i = 1:5
+    fprintf("%s : %.4f\n", models{i}, treynors(i));
+end
+
+%% STEP 8: Rolling Sharpe Ratios
+rollWin = 12;
+rolling_SR = nan(nSteps-rollWin+1, 5);
+
+for i = rollWin:nSteps
+    for j = 1:5
+        window_r = returns_all{j}(i-rollWin+1:i);
+        rolling_SR(i-rollWin+1, j) = mean(window_r) / std(window_r) * sqrt(12);
+    end
+end
+
+figure;
+plot(rolling_SR(:,1), 'k-', 'LineWidth', 2); hold on;
+plot(rolling_SR(:,2), 'b--', 'LineWidth', 2);
+plot(rolling_SR(:,3), 'r-.', 'LineWidth', 2);
+plot(rolling_SR(:,4), 'g-', 'LineWidth', 2);
+plot(rolling_SR(:,5), 'm-', 'LineWidth', 2);
+legend(models, 'Location','best');
+xlabel('Rolling Window Index');
+ylabel('Sharpe Ratio (Annualized)');
+title('Rolling 12-Month Sharpe Ratios');
+grid on;
+
+%% STEP 7: Portfolio Volatilities (Annualized)
 sigma_HIST = std(returns_HIST) * sqrt(12);
 sigma_SIM  = std(returns_SIM)  * sqrt(12);
 sigma_DIM  = std(returns_DIM)  * sqrt(12);
 sigma_MSK  = std(returns_MSK)  * sqrt(12);
+sigma_MK  = std(returns_MK)  * sqrt(12);
 
 fprintf("\nPortfolio Volatilities (Annualized):\n");
 fprintf("HIST: %.4f\n", sigma_HIST);
 fprintf("SIM : %.4f\n", sigma_SIM);
 fprintf("DIM : %.4f\n", sigma_DIM);
 fprintf("MSK : %.4f\n", sigma_MSK);
+fprintf("MK : %.4f\n", sigma_MK);
 
-%% STEP 7: Other Performance Measures
+%% STEP 8: Other Performance Measures
 
 % === Annualized Average Returns (geometric approximation) ===
 annRet_HIST = mean(returns_HIST) * 12;
 annRet_SIM  = mean(returns_SIM) * 12;
 annRet_DIM  = mean(returns_DIM) * 12;
 annRet_MSK  = mean(returns_MSK) * 12;
+annRet_MK  = mean(returns_MK) * 12;
 
 % === Maximum Drawdown Function ===
 maxDD = @(cumRet) max(1 - cumRet ./ cummax(cumRet));
@@ -224,101 +289,17 @@ MDD_HIST = maxDD(cum_HIST);
 MDD_SIM  = maxDD(cum_SIM);
 MDD_DIM  = maxDD(cum_DIM);
 MDD_MSK  = maxDD(cum_MSK);
+MDD_MK  = maxDD(cum_MK);
 
 Calmar_HIST = annRet_HIST / MDD_HIST;
 Calmar_SIM  = annRet_SIM  / MDD_SIM;
 Calmar_DIM  = annRet_DIM  / MDD_DIM;
 Calmar_MSK  = annRet_MSK  / MDD_MSK;
+Calmar_MK  = annRet_MK  / MDD_MK;
 
 fprintf("\nCalmar Ratios:\n");
 fprintf("HIST: %.4f\n", Calmar_HIST);
 fprintf("SIM : %.4f\n", Calmar_SIM);
 fprintf("DIM : %.4f\n", Calmar_DIM);
 fprintf("MSK : %.4f\n", Calmar_MSK);
-
-%% Compute average market returns over each out-of-sample step
-market_step = zeros(nSteps,1);
-for t = 1:nSteps
-    idx_test  = window_length + (t-1)*step_size + (1:step_size);
-    market_step(t) = mean(aligned_marketReturns(idx_test));
-end
-
-%% Jensen's Alpha and Treynor Ratio
-
-X = [ones(nSteps,1), market_step]; % constant + market return
-
-% HIST
-b_HIST = regress(returns_HIST, X);
-alpha_HIST = b_HIST(1) * 12;        % annualized alpha
-beta_HIST  = b_HIST(2);
-
-% SIM
-b_SIM = regress(returns_SIM, X);
-alpha_SIM = b_SIM(1) * 12;
-beta_SIM  = b_SIM(2);
-
-% DIM
-b_DIM = regress(returns_DIM, X);
-alpha_DIM = b_DIM(1) * 12;
-beta_DIM  = b_DIM(2);
-
-% MSK
-b_MSK = regress(returns_MSK, X);
-alpha_MSK = b_MSK(1) * 12;
-beta_MSK  = b_MSK(2);
-
-fprintf("\nJensen's Alpha (Annualized):\n");
-fprintf("HIST: %.4f\n", alpha_HIST);
-fprintf("SIM : %.4f\n", alpha_SIM);
-fprintf("DIM : %.4f\n", alpha_DIM);
-fprintf("MSK : %.4f\n", alpha_MSK);
-
-%% Treynor Ratio
-annRf = mean(rf) * 252;
-
-Treynor_HIST = (annRet_HIST - annRf) / beta_HIST;
-Treynor_SIM  = (annRet_SIM  - annRf) / beta_SIM;
-Treynor_DIM  = (annRet_DIM  - annRf) / beta_DIM;
-Treynor_MSK  = (annRet_MSK  - annRf) / beta_MSK;
-
-
-fprintf("\nTreynor Ratios:\n");
-fprintf("HIST: %.4f\n", Treynor_HIST);
-fprintf("SIM : %.4f\n", Treynor_SIM);
-fprintf("DIM : %.4f\n", Treynor_DIM);
-fprintf("MSK : %.4f\n", Treynor_MSK);
-
-
-%% STEP 6: Rolling Sharpe Ratios
-% Choose rolling window length (in months/steps). Example: 12-month window
-rollWin = 12;  
-
-rolling_SR_HIST = nan(nSteps-rollWin+1,1);
-rolling_SR_SIM  = nan(nSteps-rollWin+1,1);
-rolling_SR_DIM  = nan(nSteps-rollWin+1,1);
-rolling_SR_MSK  = nan(nSteps-rollWin+1,1);
-
-
-for i = rollWin:nSteps
-    window_H = returns_HIST(i-rollWin+1:i);
-    window_S = returns_SIM(i-rollWin+1:i);
-    window_D = returns_DIM(i-rollWin+1:i);
-    window_M = returns_MSK(i-rollWin+1:i);
-
-    rolling_SR_HIST(i-rollWin+1) = mean(window_H) / std(window_H) * sqrt(12);
-    rolling_SR_SIM(i-rollWin+1)  = mean(window_S) / std(window_S) * sqrt(12);
-    rolling_SR_DIM(i-rollWin+1)  = mean(window_D) / std(window_D) * sqrt(12);
-    rolling_SR_MSK(i-rollWin+1)  = mean(window_M) / std(window_M) * sqrt(12);
-end
-
-% Plot Rolling Sharpe Ratios
-figure;
-plot(rolling_SR_HIST, 'k-', 'LineWidth', 2); hold on;
-plot(rolling_SR_SIM, 'b--', 'LineWidth', 2);
-plot(rolling_SR_DIM, 'r-.', 'LineWidth', 2);
-plot(rolling_SR_MSK, 'g-.', 'LineWidth', 2);
-legend('HIST','SIM','DIM','MSK','Location','best');
-xlabel('Rolling Window Index');
-ylabel('Sharpe Ratio (Annualized)');
-title('Rolling 12-Month Sharpe Ratios');
-grid on;
+fprintf("MK : %.4f\n", Calmar_MK);
